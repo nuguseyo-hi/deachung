@@ -1,5 +1,5 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');
-const {Story,MOM,TEACHER,FINAL}=require('../engine.js');
+const {Story,MOM,TEACHER,FINAL,RHYTHM,rhythmChart}=require('../engine.js');
 function advance(s,seconds){for(let i=0;i<seconds*20;i++)s.advance(.05)}
 function setup(){const events=[];const s=new Story(e=>events.push(e));return {s,events}}
 function room(s){advance(s,8);assert.equal(s.ready,true);s.answer(true)}
@@ -13,4 +13,8 @@ test('already seated piano becomes distressed when teacher notification arrives'
 function rhythm(){const {s,events}=setup();room(s);advance(s,31);s.sit();s.stand();s.startRhythm();return {s,events}}
 test('five red notes arrive at 10 second intervals; avoiding them completes 60 seconds',()=>{const {s}=rhythm();advance(s,59);assert.equal(s.done,false);advance(s,1.1);assert.equal(s.view,'ending');assert.deepEqual(s.notes.filter(n=>n.red).map(n=>n.at),[10,20,30,40,50]);assert.equal(s.strikes,0)});
 test('red hits count once each and the fifth causes blackout instead of success',()=>{const {s}=rhythm();for(const at of [10,20,30,40,50]){advance(s,at-s.rhythmTime);s.hit();s.hit();}assert.equal(s.strikes,5);assert.equal(s.view,'collapse');advance(s,3.1);assert.equal(s.view,'over')});
-test('normal notes score, key repeat cannot rescore and out of range presses do not hit red',()=>{const {s}=rhythm();advance(s,.75);s.hit();assert.equal(s.score,1000);s.hit();assert.equal(s.score,1000);assert.equal(s.strikes,0)});
+test('normal notes score, key repeat cannot rescore and out of range presses do not hit red',()=>{const {s}=rhythm();advance(s,.5);s.hit();assert.equal(s.score,1000);s.hit();assert.equal(s.score,1000);assert.equal(s.strikes,0)});
+
+test('harder chart follows the beat, adds late bursts, and leaves room around red notes',()=>{const notes=rhythmChart(),normal=notes.filter(n=>!n.red);assert.ok(normal.length>110);assert.ok(normal.some(n=>n.at>40&&normal.some(m=>m.at===n.at+.25)));for(const red of notes.filter(n=>n.red))assert.ok(normal.every(n=>Math.abs(n.at-red.at)>RHYTHM.hitWindow*2));assert.ok(notes.every(n=>n.at>0&&n.at<60));assert.equal(new Set(notes.map(n=>n.at)).size,notes.length)});
+test('tighter timing accepts Good hits but rejects inputs outside the new window',()=>{const {s}=rhythm();advance(s,.6);s.hit();assert.equal(s.score,600);advance(s,.2);s.hit();assert.equal(s.score,600);advance(s,.2);s.hit();assert.equal(s.score,1600)});
+test('restarting rhythm restores the chart, score and five red notes',()=>{const {s}=rhythm();advance(s,.5);s.hit();s.startRhythm();assert.equal(s.rhythmTime,0);assert.equal(s.score,0);assert.deepEqual(s.notes,rhythmChart())});
