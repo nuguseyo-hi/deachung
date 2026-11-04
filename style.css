@@ -8,3 +8,4 @@
 .hotspot.available span{opacity:1;color:#fff0c9;border:1px solid #bba16f}
 .hotspot.nearest{box-shadow:inset 0 0 0 3px #fff0bd,0 0 16px #f4dba355}
 .interaction-hint{position:absolute;bottom:0;left:0;right:0;margin:0;padding:8px 5px;background:#211e2be8;color:#fff0c9;text-align:center;font-size:clamp(9px,1.5vw,13px);pointer-events:none}
+#music-status{font-size:11px;line-height:1.6;color:#926767;margin:4px 0 0}#music-status:empty{display:none}
