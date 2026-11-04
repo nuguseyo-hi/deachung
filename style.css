@@ -11,3 +11,20 @@
 #music-status{font-size:11px;line-height:1.6;color:#926767;margin:4px 0 0}#music-status:empty{display:none}
 
 .phone-toggle.new-message{border-color:#e3a290;box-shadow:0 0 20px #c9756655,5px 5px #0e0d1580}
+/* The same room remains visible throughout the escape. No strobe effects. */
+button{border-radius:0;box-shadow:2px 2px #100e18}button:active{transform:translate(1px,1px);box-shadow:none}
+.dialog p{white-space:pre-line}.phone-shell,.phone-screen,.message,.avatar{border-radius:2px}
+.dance-map{max-width:680px;margin:0 auto}.dance-map .hotspots,.dance-map .room-caption{display:none}.dance-map .interaction-hint{display:none}
+.dance-hud{max-width:680px;margin:12px auto 24px;border:3px solid #857e87;background:#242330;padding:14px 20px;box-shadow:6px 6px #100d18}
+.dance-hud header{display:flex;justify-content:space-between;align-items:center;gap:12px}.dance-hud h2{font-size:18px;margin:6px 0}.dance-hud .eyebrow{color:#c7c598!important;font-size:9px!important}
+.dance-instructions{font-size:11px;line-height:1.8;color:#ccc6b0}.dance-hud .rhythm-lane{height:150px;min-height:150px;flex:none;width:100%;background:repeating-linear-gradient(90deg,#253832 0 39px,#2b4038 40px 41px)}
+.dance-hud .note{left:42%;width:16%;border-radius:0}.dance-hud .hit-line{bottom:18%;height:4px}.dance-hud .rhythm-head{color:#ded4b5}.dance-hud .rhythm-judge{font-size:17px}.dance-hud .music-progress{height:9px;border:1px solid #9eac8a;background:#171b23;margin:8px 0 0}.dance-hud .music-progress i{background:#c3d794}.dance-progress-label{display:flex;justify-content:space-between;font-size:12px;margin-top:12px;color:#d5dcb5}.dance-hud .primary{margin-top:12px;width:100%;background:#536e58}.dance-hud #music-status{color:#e2b0a1}
+.last-stretch{border-color:#b4c795}.door-opening{border-color:#b4c795}.distressed .sheet{transform:rotate(-4deg) skewX(2deg)}
+.corridor{position:relative;min-height:520px;overflow:hidden;border:6px solid #514c5d;background:linear-gradient(#14131d 0 62%,#262532 62% 64%,#191a25 64%);image-rendering:pixelated}
+.corridor:before{content:'';position:absolute;left:0;right:0;top:64%;height:36%;background:repeating-linear-gradient(0deg,transparent 0 39px,#39344455 40px 41px);transform:perspective(200px) rotateX(20deg)}
+.corridor-door{position:absolute;left:15%;top:25%;width:85px;height:190px;border:8px solid #615366;background:#080910;box-shadow:9px 0 #2e293b}.corridor-door:after{content:'02';position:absolute;left:19px;top:-26px;font:12px monospace;color:#817e85}
+.corridor-yeri{position:absolute;left:48%;top:55%;width:18px;height:24px;background:#d3c8ab;box-shadow:0 -14px #473849,0 -9px #d2ad8d,-6px 20px #455267,6px 20px #455267,0 26px #1b1828}
+#escape-text{position:absolute;left:10%;right:10%;bottom:10%;text-align:center;font-size:clamp(14px,2.5vw,22px);line-height:1.8;color:#dedbc8}
+@media(min-width:850px){.dance-map{max-width:min(680px,65vh)}}
+@media(max-width:650px){.dance-map{margin-top:0}.dance-hud{padding:10px 12px}.dance-hud h2{font-size:15px}.dance-instructions{font-size:10px}.dance-hud .rhythm-lane{height:130px;min-height:130px}.corridor{min-height:65vh}.dance-hud header button{font-size:10px;padding:8px}}
+.dance-map.last-stretch:after{content:'마지막 10초 · 문을 향해';position:absolute;top:8px;left:50%;transform:translateX(-50%);padding:6px 12px;background:#25372fe8;border:1px solid #c4d89f;color:#e4edc3;font-size:11px;white-space:nowrap;pointer-events:none}
