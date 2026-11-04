@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#211e2b"><title>딱 한 곡만 · 예리의 연습실</title><link rel="stylesheet" href="style.css?v=dream-dance-1"></head>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#211e2b"><title>딱 한 곡만 · 예리의 연습실</title><link rel="stylesheet" href="style.css?v=rhythm-variety-1"></head>
 <body><main id="app"><header class="topbar"><span class="identity"><i></i> 연습실 <span class="room-number">02</span></span><div class="preferences"><label><input id="reduce" type="checkbox"> 동작 줄이기</label><button id="sound" aria-label="소리 켜기" aria-pressed="false">소리 켜기</button></div></header>
 <section id="room" class="room" aria-label="예리의 연습실" hidden><canvas id="map" width="384" height="288" aria-hidden="true"></canvas><div class="hotspots"><button class="hotspot camera" data-object="camera" aria-label="감시카메라"><span>감시카메라</span></button><button class="hotspot sofa" data-object="sofa" aria-label="소파"><span>소파</span></button><button class="hotspot headphones" data-object="headphones" aria-label="탁자 위 헤드폰"><span>헤드폰</span></button><button class="hotspot door" data-object="door" aria-label="닫힌 문"><span>문</span></button><button class="hotspot clock" data-object="clock" aria-label="벽시계"><span>시계</span></button><button class="hotspot piano" data-object="piano" aria-label="피아노에 앉기"><span>피아노</span></button></div><p id="interaction-hint" class="interaction-hint" role="status" aria-live="polite">방향키 ↑ ↓ ← → 이동 · 물체 가까이 다가가세요</p><div class="room-caption" aria-hidden="true">닫힌 문 너머의 오후</div></section>
 
 <section id="player" class="dance-hud" aria-label="댄스 탈출" hidden>
  <header><div><span class="eyebrow">DANCE / ESCAPE</span><h2>내 박자로, 문까지.</h2></div><button id="leave-player" aria-label="탈출 준비 닫기">← 연습실</button></header>
- <p class="dance-instructions">SPACE / 터치로 스텝 · 붉은 음표는 피하세요 · 60초 동안 48번 성공하면 문에 도착합니다.</p>
- <div class="rhythm-head"><span id="rhythm-time">00:00 / 01:00</span><span id="rhythm-score">0</span><span id="dance-combo">0 COMBO</span></div>
+ <p class="dance-instructions">SPACE / 터치로 스텝 · 붉은 음표는 피하세요 · 60초 동안 96번 성공하면 문에 도착합니다. 엇박자·연타·셋잇단음에 맞춰 움직이세요.</p>
+ <div class="rhythm-head"><span id="rhythm-time">00:00 / 01:00</span><span id="rhythm-score">0</span><span id="rhythm-pattern">정박과 엇박자</span><span id="dance-combo">0 COMBO</span></div>
  <div id="rhythm-lane" class="rhythm-lane" role="button" tabindex="0" aria-label="댄스 탈출. Space 또는 터치로 스텝. 붉은 음표는 피하세요."><div id="notes"></div><div class="hit-line"></div><div id="rhythm-judge" class="rhythm-judge" aria-live="polite"></div></div>
  <div class="dance-progress-label"><span id="distance-label">문까지 100%</span><span id="strikes" aria-label="방해 음표 오입력 0회">○ ○ ○ ○ ○</span></div>
  <div id="distance-progress" class="music-progress" role="progressbar" aria-label="출입문까지 이동 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="music-progress"></i></div>
@@ -22,4 +22,4 @@
 <div id="shout" class="shout" role="alert" hidden></div><div id="fade" class="fade" aria-hidden="true"></div>
 <section id="gameover" class="end-screen" hidden><span class="end-mark" aria-hidden="true">◌</span><p class="eyebrow">감당할 수 없는 오후</p><h2>잠시, 모든 소리가 멀어졌다.</h2><p>예리는 더 이상 버티지 못했다.</p><button id="restart" class="primary">처음부터 다시</button></section>
 <section id="ending" class="end-screen success" hidden><span class="end-mark" aria-hidden="true">♫</span><p class="eyebrow">딱 한 곡만</p><h2>ENDING. DANCE</h2><p>오늘은 밖으로 나가서, 내 박자로 춤을 춘다.</p><button id="again" class="primary">다시 시작</button></section>
-<div id="pause-screen" class="pause-screen" hidden><p>잠시 멈춤</p><button id="resume" class="primary">계속하기</button></div><footer class="page-footer"><span>딱 한 곡만</span><span>방향키 이동 · E 상호작용 · P 일시정지</span></footer></main><script src="engine.js?v=dream-dance-1"></script><script src="game.js?v=dream-dance-1"></script></body></html>
+<div id="pause-screen" class="pause-screen" hidden><p>잠시 멈춤</p><button id="resume" class="primary">계속하기</button></div><footer class="page-footer"><span>딱 한 곡만</span><span>방향키 이동 · E 상호작용 · P 일시정지</span></footer></main><script src="engine.js?v=rhythm-variety-1"></script><script src="game.js?v=rhythm-variety-1"></script></body></html>

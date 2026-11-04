@@ -7,17 +7,33 @@ const TEACHER_EXTRA=['뭐해?','연습안해?','혹시 그만둘 생각이니? �
 TEACHER.push(...TEACHER_EXTRA);
 const FINAL=['선생님께 다 들었어.','예리야, 많이 힘들어? 그렇다고 해서 연습을 안하면 어떻게 하니?','지금 너를 위해 엄마가 얼마나 투자했는데, 어떻게 네가 엄마한테 이러니?','실망했다. 이런 식으로 할거면 하지 마. 너보다 힘든 애가 얼마나 많은데. 고작 이거 하나 못해?'];
 const THOUGHTS=['하기 싫다.','그만하고 싶다.','지겨워.','만약에 내가 지금 기절하면 더이상 안 쳐도 되지 않을까?','언제까지 이렇게 살아야하지?','그만, 그만해.','아, 하지만 다들 이만큼 하는데.','엄마가 날 위해 이만큼 투자해줬는데, 난 왜 이 모양이지?','더이상 못견디겠어.','죽을 것 같아.','차라리 교통사고가 나서 병원에 한 달 정도 입원하면 쉴 수 있을텐데.'];
-// 120 BPM: denser beats, then syncopation and short eighth-note bursts.
-const RHYTHM={lookahead:1.65,hitWindow:.16,perfectWindow:.065,requiredHits:48};
+// 120 BPM. Integer 1/24-second ticks keep sixteenths and triplets exact.
+const RHYTHM={lookahead:1.4,hitWindow:.12,perfectWindow:.045,requiredHits:96};
+const RHYTHM_PATTERNS=[
+ {name:'정박과 엇박자',ticks:[12,24,36,42,48,60,72,84,90]},
+ {name:'쉼표 뒤의 스텝',ticks:[12,18,24,42,48,66,72,78,84]},
+ {name:'싱코페이션',ticks:[6,18,30,36,42,54,66,72,78,90]},
+ {name:'짧은 연타',ticks:[6,12,18,24,36,42,48,54,60,72,78,84,90]},
+ {name:'셋잇단 스텝',ticks:[8,12,16,24,32,36,40,48,56,60,64,72,80,84,88]},
+ {name:'엇박자와 쉼표',ticks:[6,15,24,30,36,42,54,63,72,78,84,90]},
+ {name:'더블 스텝',ticks:[6,9,12,24,30,33,36,48,54,57,60,72,78,81,84,90]},
+ {name:'셋잇단과 연타',ticks:[4,8,12,18,24,30,33,36,44,48,52,60,66,69,72,80,84,88]},
+ {name:'마지막 댄스',ticks:[3,6,12,18,21,24,32,36,40,48,54,57,60,66,72,80,84,88,93]}
+];
+const RHYTHM_SEQUENCE=[0,1,2,3,4,5,3,4,6,7,6,8,7,8,8];
 function rhythmChart(){
- const redTimes=[10,20,30,40,50],notes=[];
- for(let base=0;base<60;base+=4){
-  const offsets=base<20?[.5,1,1.5,2,2.5,3,3.5,4]:base<40?[.5,1,1.75,2,2.5,3,3.75,4]:[.5,.75,1,1.5,2,2.5,2.75,3,3.5,4];
-  for(const offset of offsets){const at=base+offset;if(at<60&&!redTimes.some(red=>Math.abs(red-at)<.33))notes.push({at,red:false,state:'new'});}
+ const redTicks=[240,480,720,960,1200],notes=[];
+ for(let bar=0;bar<RHYTHM_SEQUENCE.length;bar++){
+  const pattern=RHYTHM_PATTERNS[RHYTHM_SEQUENCE[bar]];
+  for(const tick of pattern.ticks){const atTick=bar*96+tick;
+   // At least 375ms of quiet on either side of a surveillance note.
+   if(!redTicks.some(red=>Math.abs(red-atTick)<=9))notes.push({at:atTick/24,red:false,state:'new'});
+  }
  }
- for(const at of redTimes)notes.push({at,red:true,state:'new'});
+ for(const tick of redTicks)notes.push({at:tick/24,red:true,state:'new'});
  return notes.sort((a,b)=>a.at-b.at);
 }
+function rhythmPatternAt(seconds){return RHYTHM_PATTERNS[RHYTHM_SEQUENCE[Math.min(14,Math.max(0,Math.floor(seconds/4)))]].name;}
 // Coordinates use the 384 × 288 room canvas; positions mark Yeri's feet.
 const ROOM_OBJECTS=[
  {name:'camera',x:53,y:164}, {name:'clock',x:193,y:101},
@@ -79,5 +95,5 @@ class Story{
  if(this.rhythmTime>=60){this.rhythmTime=60;this.notes=[];this.escapeAvailable=this.danceProgress>=1;this.view=this.escapeAvailable?'escapeChoice':'danceRetry';this.event(this.escapeAvailable?'escapeChoice':'danceRetry');}}
  hit(){if(this.view!=='rhythm'||this.done)return;const n=this.notes.filter(n=>n.state==='new'&&Math.abs(n.at-this.rhythmTime)<=RHYTHM.hitWindow).sort((a,b)=>Math.abs(a.at-this.rhythmTime)-Math.abs(b.at-this.rhythmTime))[0];if(!n){this.event('judge',{text:'·',kind:'miss'});return;}n.state='hit';if(n.red){this.combo=0;this.strikes++;this.event('strike',{strikes:this.strikes});if(this.strikes>=5){this.view='collapse';this.collapseAt=this.time+3;this.event('collapse');}}else{this.danceHits++;this.combo++;this.danceProgress=Math.min(1,this.danceHits/RHYTHM.requiredHits);this.event('danceStep',{progress:this.danceProgress,combo:this.combo});this.score+=Math.abs(n.at-this.rhythmTime)<=RHYTHM.perfectWindow?1000:600;this.event('judge',{text:'♪',kind:'good'});}}
 }
-const api={RoomMovement,ROOM_OBJECTS,DANCE_PATH,dancePosition,ESCAPE_LINES,TEACHER_EXTRA,Story,MOM,TEACHER,FINAL,THOUGHTS,RHYTHM,rhythmChart};if(typeof module!=='undefined')module.exports=api;else root.PracticeStory=api;
+const api={RoomMovement,ROOM_OBJECTS,DANCE_PATH,dancePosition,ESCAPE_LINES,TEACHER_EXTRA,rhythmPatternAt,Story,MOM,TEACHER,FINAL,THOUGHTS,RHYTHM,rhythmChart};if(typeof module!=='undefined')module.exports=api;else root.PracticeStory=api;
 })(globalThis);
