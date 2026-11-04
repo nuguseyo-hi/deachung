@@ -15,7 +15,7 @@ node --check game.js
 node tests/game.test.cjs
 ```
 
-GitHub Pages에서는 `main`의 `/ (root)`를 배포합니다. HTML/CSS/JS와 `assets/`를 함께 배포해야 합니다. 추가 라이브러리는 필요하지 않습니다. 배경 `assets/practice-room.png`와 캐릭터 `assets/yeri-sprites.png`도 함께 배포합니다.
+GitHub Pages에서는 `main`의 `/ (root)`를 배포합니다. HTML/CSS/JS와 `assets/`를 함께 배포해야 합니다. 추가 라이브러리는 필요하지 않습니다. 배경 `assets/practice-room.png`·`assets/bedroom.png`와 캐릭터 `assets/yeri-sprites.png`도 함께 배포합니다.
 
 ## 진행
 
@@ -46,3 +46,5 @@ GitHub Pages에서는 `main`의 `/ (root)`를 배포합니다. HTML/CSS/JS와 `a
 - `tests/game.test.cjs`: 26개 테스트. 도입부, 경고 단계, 피아노 중단, 빨간 음표 5회 실패, 프레임 독립 이동, 새 이미지 좌표에 맞춘 전체 경로 충돌 검사, 96회/60초 성공 조건, 문 열기·기상·엄마의 새 답변·복귀·재도전·초기화를 검증합니다.
 
 Chromium에서도 실제 DOM/키 입력, 음원 디코딩·재생, 탈출 선택지·꿈에서 깨어나는 엔딩·게임오버·재시작과 모바일 화면 폭을 검증했습니다. UI 검증은 빠른 분기 검사와 실제 60초 음악 재생 검사를 구분해서 수행합니다.
+
+기상 장면은 연습실과 같은 보랏빛 픽셀아트 침실 배경을 사용합니다. 침대 베개에는 게임에서 쓰는 `yeri-sprites.png`의 동일한 정면 캐릭터를 렌더링하고, 원본 침구를 앞에 겹쳐 이불을 덮고 누워 있는 모습으로 표시합니다.

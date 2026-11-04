@@ -85,16 +85,7 @@ function showBedroom(){
  $('room').hidden=$('corridor').hidden=$('player').hidden=$('piano').hidden=$('phone-toggle').hidden=$('phone-layer').hidden=$('shout').hidden=true;
  $('bedroom').hidden=false;$('phone-layer').classList.remove('powering-off');$('badge').hidden=true;$('thoughts').replaceChildren();
  if(master&&ac){master.gain.cancelScheduledValues(ac.currentTime);master.gain.value=enabled?.32:0;}
- const c=$('bed-map').getContext('2d');c.imageSmoothingEnabled=false;
- const box=(x,y,w,h,color)=>{c.fillStyle=color;c.fillRect(x,y,w,h)};
- box(0,0,384,288,'#55586c');box(12,12,360,164,'#aab6b1');box(12,176,360,100,'#817989');
- for(let y=190;y<280;y+=19)box(12,y,360,1,'#696577');
- box(244,26,88,75,'#57576c');box(250,32,76,63,'#b5c8ca');box(287,32,3,63,'#e6dfc5');box(250,63,76,3,'#e6dfc5');
- box(64,87,142,177,'#443d55');box(70,94,130,163,'#b69b88');box(76,106,118,145,'#d7d0b9');box(84,113,102,39,'#f0e4ca');
- box(122,120,25,23,'#493b4f');box(125,127,20,20,'#d2ad8d');box(129,137,3,2,'#45374b');box(139,137,3,2,'#45374b');
- box(80,150,110,94,'#7e9b9c');box(80,151,110,6,'#a9bfc0');for(let x=87;x<190;x+=15)box(x,162,2,76,'#91acab');
- box(217,158,48,47,'#57475b');box(222,162,38,32,'#aa8775');box(231,153,14,7,'#292735');box(234,154,8,4,'#b1c4bd');
- box(24,252,30,13,'#9e8c99');box(334,246,28,18,'#b7a58c');
+ drawBedroom();
 }
 function returnToPiano(){stopSong();$('player').hidden=true;$('interaction-hint').hidden=true;$('interaction-hint').textContent='...아직은 무서워.';$('interaction-hint').hidden=false;}
 function openEscape(){
@@ -117,8 +108,8 @@ $('restart').onclick=$('again').onclick=reset;
 const ctx=$('map').getContext('2d');function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.floor(x),Math.floor(y),w,h)}
 const C={outline:'#3c334e',wall:'#b5bca0',floor:'#797387',light:'#d9d5b5',wood:'#aa7c65',shadow:'#5c526c',blue:'#7d9db1'};
 function outline(x,y,w,h,fill,border=3){rect(x,y,w,h,C.outline);rect(x+border,y+border,w-border*2,h-border*2,fill)}
-const roomArt=new Image(),yeriArt=new Image();
-roomArt.src='assets/practice-room.png';yeriArt.src='assets/yeri-sprites.png';
+const roomArt=new Image(),yeriArt=new Image(),bedroomArt=new Image();
+roomArt.src='assets/practice-room.png';yeriArt.src='assets/yeri-sprites.png';bedroomArt.src='assets/bedroom.png';
 let spriteFrames=[];
 yeriArt.onload=()=>{
  // Locate each frame's opaque pixels at runtime, preserving the original PNG untouched.
@@ -132,6 +123,20 @@ yeriArt.onload=()=>{
   spriteFrames.push({x:x0,y:y0,w:Math.max(1,x1-x0+1),h:Math.max(1,y1-y0+1)});
  }
 };
+function drawBedroom(){
+ const c=$('bed-map').getContext('2d');c.setTransform(3,0,0,3,0,0);c.imageSmoothingEnabled=false;
+ c.fillStyle='#211b28';c.fillRect(0,0,384,288);
+ if(!bedroomArt.complete||!bedroomArt.naturalWidth)return;
+ c.drawImage(bedroomArt,0,0,384,288);
+ // Reuse Yeri's exact front sprite on the pillow. The original quilt masks her lower body.
+ if(spriteFrames.length===16){
+  const f=spriteFrames[0],height=67,width=f.w/f.h*height;
+  const breath=document.body.classList.contains('reduced')?0:Math.sin(story.time*1.8)*.18;
+  c.drawImage(yeriArt,f.x,f.y,f.w,f.h,131-width/2,114+breath,width,height);
+  const blanketY=149,sourceY=bedroomArt.naturalHeight*blanketY/288;
+  c.drawImage(bedroomArt,0,sourceY,bedroomArt.naturalWidth,bedroomArt.naturalHeight-sourceY,0,blanketY,384,288-blanketY);
+ }
+}
 function drawYeri(){
  const stepAge=story.time-danceStepAt,reduced=document.body.classList.contains('reduced');
  const dancing=story.view==='rhythm'&&stepAge<.48&&!reduced;
@@ -164,5 +169,6 @@ function frame(now){const dt=Math.min(.1,Math.max(0,(now-lastFrame)/1000));lastF
 if(!story.done&&story.collapseAt===null&&!['escaping','waking','wakePhone','danceEnding','ending'].includes(story.view)&&Math.floor(story.time)!==lastTick){tick();lastTick=Math.floor(story.time);}if(story.view==='rhythm'){visualProgress=Math.min(story.danceProgress,visualProgress+dt*.65);Object.assign(walker,PracticeStory.dancePosition(visualProgress));renderRhythm();}
 if(story.view==='returning'){visualProgress=Math.max(0,story.danceProgress*(1-(story.time-story.transitionAt)/3));Object.assign(walker,PracticeStory.dancePosition(visualProgress));}
 if(story.view==='escaping'){const t=Math.min(1,(story.time-story.transitionAt)/2);walker.x=61-23*t;walker.y=242+17*t;}
+if(['waking','wakePhone','danceEnding'].includes(story.view))drawBedroom();
 if(roomControls())walker.move(Number(movementKeys.has('ArrowRight'))-Number(movementKeys.has('ArrowLeft')),Number(movementKeys.has('ArrowDown'))-Number(movementKeys.has('ArrowUp')),dt);else{movementKeys.clear();walker.moving=false;}updateNearby();if(['room','player','rhythm','escapeChoice','returning','escaping','danceRetry'].includes(story.view))drawMap();}requestAnimationFrame(frame);}
 reset();requestAnimationFrame(frame);
