@@ -18,3 +18,21 @@ test('normal notes score, key repeat cannot rescore and out of range presses do 
 test('harder chart follows the beat, adds late bursts, and leaves room around red notes',()=>{const notes=rhythmChart(),normal=notes.filter(n=>!n.red);assert.ok(normal.length>110);assert.ok(normal.some(n=>n.at>40&&normal.some(m=>m.at===n.at+.25)));for(const red of notes.filter(n=>n.red))assert.ok(normal.every(n=>Math.abs(n.at-red.at)>RHYTHM.hitWindow*2));assert.ok(notes.every(n=>n.at>0&&n.at<60));assert.equal(new Set(notes.map(n=>n.at)).size,notes.length)});
 test('tighter timing accepts Good hits but rejects inputs outside the new window',()=>{const {s}=rhythm();advance(s,.6);s.hit();assert.equal(s.score,600);advance(s,.2);s.hit();assert.equal(s.score,600);advance(s,.2);s.hit();assert.equal(s.score,1600)});
 test('restarting rhythm restores the chart, score and five red notes',()=>{const {s}=rhythm();advance(s,.5);s.hit();s.startRhythm();assert.equal(s.rhythmTime,0);assert.equal(s.score,0);assert.deepEqual(s.notes,rhythmChart())});
+
+const {RoomMovement,ROOM_OBJECTS}=require('../engine.js');
+test('room movement is normalized, bounded and blocked by furniture',()=>{
+ const straight=new RoomMovement(),diagonal=new RoomMovement();straight.move(1,0,.1);diagonal.move(1,1,.1);
+ assert.ok(Math.abs(Math.hypot(diagonal.x-222,diagonal.y-214)-(straight.x-222))<1e-8);
+ const w=new RoomMovement();w.x=260;w.y=150;for(let i=0;i<100;i++)w.move(1,0,.1);assert.ok(w.x<=271);
+ w.x=193;w.y=120;for(let i=0;i<100;i++)w.move(0,-1,.1);assert.ok(w.y>=103);
+ for(let i=0;i<100;i++)w.move(-1,1,.1);assert.ok(w.canStand(w.x,w.y));
+});
+test('proximity requires approaching, and every object is reachable from spawn',()=>{
+ const w=new RoomMovement();assert.equal(w.nearby().length,0);
+ const queue=[[222,214]],seen=new Set(['222,214']),reachable=new Set();
+ for(let i=0;i<queue.length;i++){const [x,y]=queue[i];w.x=x;w.y=y;for(const o of w.nearby())reachable.add(o.name);
+  for(const [dx,dy] of [[2,0],[-2,0],[0,2],[0,-2]]){const nx=x+dx,ny=y+dy,key=`${nx},${ny}`;if(!seen.has(key)&&w.canStand(nx,ny)){seen.add(key);queue.push([nx,ny]);}}
+ }
+ assert.deepEqual([...reachable].sort(),ROOM_OBJECTS.map(o=>o.name).sort());
+ w.x=268;w.y=162;assert.equal(w.nearby()[0].name,'piano');w.x=222;w.y=214;assert.equal(w.nearby().some(o=>o.name==='piano'),false);
+});

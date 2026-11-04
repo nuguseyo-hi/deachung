@@ -16,6 +16,21 @@ function rhythmChart(){
  for(const at of redTimes)notes.push({at,red:true,state:'new'});
  return notes.sort((a,b)=>a.at-b.at);
 }
+// Coordinates use the 384 × 288 room canvas; positions mark Yeri's feet.
+const ROOM_OBJECTS=[
+ {name:'camera',x:53,y:164}, {name:'clock',x:193,y:101},
+ {name:'sofa',x:111,y:145}, {name:'headphones',x:104,y:211},
+ {name:'door',x:80,y:247}, {name:'piano',x:268,y:162}
+];
+const ROOM_SOLIDS=[[28,92,81,63],[73,169,62,39],[278,91,76,103],[24,220,51,54],[329,202,25,48],[263,217,26,29]];
+class RoomMovement{
+ constructor(){this.x=222;this.y=214;}
+ canStand(x,y){return x>=23&&x<=361&&y>=103&&y<=265&&!ROOM_SOLIDS.some(([sx,sy,w,h])=>x+7>sx&&x-7<sx+w&&y>sy&&y-5<sy+h);}
+ move(dx,dy,dt){const length=Math.hypot(dx,dy);if(!length)return;const distance=76*Math.min(.1,Math.max(0,dt)),steps=Math.max(1,Math.ceil(distance/2));
+  for(let i=0;i<steps;i++){const x=this.x+dx/length*distance/steps,y=this.y+dy/length*distance/steps;if(this.canStand(x,this.y))this.x=x;if(this.canStand(this.x,y))this.y=y;}
+ }
+ nearby(){return ROOM_OBJECTS.filter(o=>Math.hypot(this.x-o.x,this.y-o.y)<=38).sort((a,b)=>Math.hypot(this.x-a.x,this.y-a.y)-Math.hypot(this.x-b.x,this.y-b.y));}
+}
 class Story{
  constructor(emit=()=>{}){this.emit=emit;this.time=0;this.roomStart=null;this.view='phone';this.chat='mom';this.messages=[];this.messageIndex=0;this.nextMessage=1;this.ready=false;this.notificationAt=null;this.teacherRead=false;this.pressureAt=null;this.pressureLevel=0;this.resolved=false;this.distress=false;this.escaped=false;this.rhythmTime=0;this.strikes=0;this.score=0;this.notes=[];this.lastBeat=-1;this.nextThought=0;this.thoughtIndex=0;this.collapseAt=null;this.done=false;}
  event(type,data){this.emit({type,...data});}
@@ -42,5 +57,5 @@ class Story{
  if(this.rhythmTime>=60){this.done=true;this.view='ending';this.event('ending');}}
  hit(){if(this.view!=='rhythm'||this.done)return;const n=this.notes.filter(n=>n.state==='new'&&Math.abs(n.at-this.rhythmTime)<=RHYTHM.hitWindow).sort((a,b)=>Math.abs(a.at-this.rhythmTime)-Math.abs(b.at-this.rhythmTime))[0];if(!n){this.event('judge',{text:'·',kind:'miss'});return;}n.state='hit';if(n.red){this.strikes++;this.event('strike',{strikes:this.strikes});if(this.strikes>=5){this.view='collapse';this.collapseAt=this.time+3;this.event('collapse');}}else{this.score+=Math.abs(n.at-this.rhythmTime)<=RHYTHM.perfectWindow?1000:600;this.event('judge',{text:'♪',kind:'good'});}}
 }
-const api={Story,MOM,TEACHER,FINAL,THOUGHTS,RHYTHM,rhythmChart};if(typeof module!=='undefined')module.exports=api;else root.PracticeStory=api;
+const api={RoomMovement,ROOM_OBJECTS,Story,MOM,TEACHER,FINAL,THOUGHTS,RHYTHM,rhythmChart};if(typeof module!=='undefined')module.exports=api;else root.PracticeStory=api;
 })(globalThis);
