@@ -20,25 +20,25 @@ test('tighter timing accepts Good hits but rejects inputs outside the new window
 test('repeated start requests cannot reset an active dance',()=>{const {s}=rhythm();advance(s,.5);s.hit();assert.equal(s.startRhythm(),false);assert.ok(s.rhythmTime>.49);assert.equal(s.score,1000);assert.equal(s.danceHits,1)});
 const {RoomMovement,ROOM_OBJECTS}=require('../engine.js');
 test('room movement is normalized, bounded and blocked by furniture',()=>{
- const straight=new RoomMovement(),diagonal=new RoomMovement();straight.move(1,0,.1);diagonal.move(1,1,.1);
- assert.ok(Math.abs(Math.hypot(diagonal.x-222,diagonal.y-214)-(straight.x-222))<1e-8);
+ const straight=new RoomMovement(),diagonal=new RoomMovement(),spawn={x:straight.x,y:straight.y};straight.move(1,0,.1);diagonal.move(1,1,.1);
+ assert.ok(Math.abs(Math.hypot(diagonal.x-spawn.x,diagonal.y-spawn.y)-(straight.x-spawn.x))<1e-8);
  const w=new RoomMovement();w.x=260;w.y=150;for(let i=0;i<100;i++)w.move(1,0,.1);assert.ok(w.x<=271);
  w.x=193;w.y=120;for(let i=0;i<100;i++)w.move(0,-1,.1);assert.ok(w.y>=103);
  for(let i=0;i<100;i++)w.move(-1,1,.1);assert.ok(w.canStand(w.x,w.y));
 });
 test('proximity requires approaching, and every object is reachable from spawn',()=>{
  const w=new RoomMovement();assert.equal(w.nearby().length,0);
- const queue=[[222,214]],seen=new Set(['222,214']),reachable=new Set();
+ const queue=[[w.x,w.y]],seen=new Set([`${w.x},${w.y}`]),reachable=new Set();
  for(let i=0;i<queue.length;i++){const [x,y]=queue[i];w.x=x;w.y=y;for(const o of w.nearby())reachable.add(o.name);
   for(const [dx,dy] of [[2,0],[-2,0],[0,2],[0,-2]]){const nx=x+dx,ny=y+dy,key=`${nx},${ny}`;if(!seen.has(key)&&w.canStand(nx,ny)){seen.add(key);queue.push([nx,ny]);}}
  }
  assert.deepEqual([...reachable].sort(),ROOM_OBJECTS.map(o=>o.name).sort());
- w.x=268;w.y=162;assert.equal(w.nearby()[0].name,'piano');w.x=222;w.y=214;assert.equal(w.nearby().some(o=>o.name==='piano'),false);
+ w.x=252;w.y=190;assert.equal(w.nearby()[0].name,'piano');w.x=222;w.y=214;assert.equal(w.nearby().some(o=>o.name==='piano'),false);
 });
 
 const {dancePosition,DANCE_PATH,ESCAPE_LINES}=require('../engine.js');
 function completeDance(s){for(const n of [...s.notes]){advance(s,Math.max(0,n.at-s.rhythmTime));if(!n.red)s.hit();}advance(s,60.1-s.rhythmTime);}
-test('successful notes move along a fully walkable route, misses do not move',()=>{const {s}=rhythm();advance(s,.5);s.hit();assert.equal(s.danceProgress,1/RHYTHM.requiredHits);const progress=s.danceProgress;advance(s,.3);s.hit();assert.equal(s.danceProgress,progress);const w=new RoomMovement();for(let i=0;i<=1000;i++){const p=dancePosition(i/1000);assert.ok(w.canStand(p.x,p.y),JSON.stringify(p));}assert.deepEqual(dancePosition(0),{x:DANCE_PATH[0][0],y:DANCE_PATH[0][1]});assert.deepEqual(dancePosition(1),{x:83,y:247});});
+test('successful notes move along a fully walkable route, misses do not move',()=>{const {s}=rhythm();advance(s,.5);s.hit();assert.equal(s.danceProgress,1/RHYTHM.requiredHits);const progress=s.danceProgress;advance(s,.3);s.hit();assert.equal(s.danceProgress,progress);const w=new RoomMovement();for(let i=0;i<=1000;i++){const p=dancePosition(i/1000);assert.ok(w.canStand(p.x,p.y),JSON.stringify(p));}assert.deepEqual(dancePosition(0),{x:DANCE_PATH[0][0],y:DANCE_PATH[0][1]});assert.deepEqual(dancePosition(1),{x:61,y:242});});
 test('required hits reach the door, but escape choices wait for the full sixty seconds',()=>{const {s}=rhythm();for(const n of [...s.notes].filter(n=>!n.red).slice(0,RHYTHM.requiredHits)){advance(s,Math.max(0,n.at-s.rhythmTime));s.hit();}assert.equal(s.danceProgress,1);assert.equal(s.view,'rhythm');assert.equal(s.escapeAvailable,false);advance(s,60.1-s.rhythmTime);assert.equal(s.view,'escapeChoice');assert.equal(s.escapeAvailable,true);assert.equal(s.notes.length,0);});
 test('opening the door wakes Yeri in bed; mom notification precedes the DANCE ending',()=>{const {s,events}=rhythm();assert.equal(s.chooseDanceEnding(),false);completeDance(s);s.chooseEscape(true);advance(s,2.1);assert.equal(s.view,'waking');assert.equal(events.filter(e=>e.type==='wake').length,1);assert.equal(s.done,false);advance(s,3.1);assert.equal(s.view,'wakePhone');assert.equal(s.chat,'wake');assert.equal(s.chooseDanceEnding(),false);advance(s,8);assert.deepEqual(s.messages,MOM);assert.equal(s.ready,true);assert.equal(s.chooseDanceEnding(),true);assert.equal(events.filter(e=>e.type==='reply').at(-1).text,'아니, 오늘은 밖으로 나가서 춤출거야.');assert.equal(s.view,'danceEnding');assert.equal(s.chooseDanceEnding(),false);advance(s,1.3);assert.equal(s.done,true);assert.equal(s.view,'ending');});
 test('returning to piano allows another headphone dance with reset scores and mistakes',()=>{const {s}=rhythm();completeDance(s);s.chooseEscape(false);assert.equal(s.view,'returning');advance(s,3.1);assert.equal(s.view,'room');assert.equal(s.escaped,true);assert.equal(s.danceProgress,0);assert.equal(s.prepareDance(),true);assert.equal(s.view,'player');s.startRhythm();assert.equal(s.strikes,0);assert.equal(s.rhythmTime,0);assert.equal(s.danceProgress,0);assert.equal(s.escapeAvailable,false);});

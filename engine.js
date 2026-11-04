@@ -36,27 +36,28 @@ function rhythmChart(){
 function rhythmPatternAt(seconds){return RHYTHM_PATTERNS[RHYTHM_SEQUENCE[Math.min(14,Math.max(0,Math.floor(seconds/4)))]].name;}
 // Coordinates use the 384 × 288 room canvas; positions mark Yeri's feet.
 const ROOM_OBJECTS=[
- {name:'camera',x:53,y:164}, {name:'clock',x:193,y:101},
- {name:'sofa',x:111,y:145}, {name:'headphones',x:104,y:211},
- {name:'door',x:80,y:247}, {name:'piano',x:268,y:162}
+ {name:'camera',x:125,y:126}, {name:'clock',x:192,y:108},
+ {name:'sofa',x:117,y:145}, {name:'headphones',x:111,y:173},
+ {name:'door',x:61,y:240}, {name:'piano',x:263,y:177}
 ];
-const ROOM_SOLIDS=[[28,92,81,63],[73,169,62,39],[278,91,76,103],[24,220,51,54],[329,202,25,48],[263,217,26,29]];
+const ROOM_SOLIDS=[[49,83,67,53],[56,135,52,41],[283,73,75,146],[270,147,29,51],[26,178,27,90]];
 class RoomMovement{
- constructor(){this.x=222;this.y=214;}
- canStand(x,y){return x>=23&&x<=361&&y>=103&&y<=265&&!ROOM_SOLIDS.some(([sx,sy,w,h])=>x+7>sx&&x-7<sx+w&&y>sy&&y-5<sy+h);}
- move(dx,dy,dt){const length=Math.hypot(dx,dy);if(!length)return;const distance=76*Math.min(.1,Math.max(0,dt)),steps=Math.max(1,Math.ceil(distance/2));
+ constructor(){this.x=192;this.y=194;this.facing='front';this.moving=false;}
+ canStand(x,y){return x>=52&&x<=350&&y>=112&&y<=265&&!ROOM_SOLIDS.some(([sx,sy,w,h])=>x+7>sx&&x-7<sx+w&&y>sy&&y-5<sy+h);}
+ move(dx,dy,dt){const length=Math.hypot(dx,dy);this.moving=false;if(!length)return;const beforeX=this.x,beforeY=this.y;this.facing=Math.abs(dx)>=Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'front':'back');const distance=76*Math.min(.1,Math.max(0,dt)),steps=Math.max(1,Math.ceil(distance/2));
   for(let i=0;i<steps;i++){const x=this.x+dx/length*distance/steps,y=this.y+dy/length*distance/steps;if(this.canStand(x,this.y))this.x=x;if(this.canStand(this.x,y))this.y=y;}
+  this.moving=Math.hypot(this.x-beforeX,this.y-beforeY)>.01;
  }
  nearby(){return ROOM_OBJECTS.filter(o=>Math.hypot(this.x-o.x,this.y-o.y)<=38).sort((a,b)=>Math.hypot(this.x-a.x,this.y-a.y)-Math.hypot(this.x-b.x,this.y-b.y));}
 }
-// Walkable waypoints go around the piano stool, bag, table and closed door.
-const DANCE_PATH=[[268,162],[245,184],[224,214],[191,239],[145,247],[83,247]];
+// Image-aligned walkable route goes left of the piano stool and below the coffee table.
+const DANCE_PATH=[[252,190],[237,208],[208,224],[175,236],[130,241],[61,242]];
 const ESCAPE_LINES=['...조용하다.','더 이상 피아노 소리가 들리지 않는다.','아무도 나에게 연습하라고 말하지 않는다.','이제 어디로 가지?'];
 function dancePosition(progress){
  const lengths=DANCE_PATH.slice(1).map((p,i)=>Math.hypot(p[0]-DANCE_PATH[i][0],p[1]-DANCE_PATH[i][1]));
  let remaining=Math.max(0,Math.min(1,progress))*lengths.reduce((a,b)=>a+b,0);
  for(let i=0;i<lengths.length;i++){if(remaining<=lengths[i]){const t=remaining/lengths[i];return {x:DANCE_PATH[i][0]+(DANCE_PATH[i+1][0]-DANCE_PATH[i][0])*t,y:DANCE_PATH[i][1]+(DANCE_PATH[i+1][1]-DANCE_PATH[i][1])*t};}remaining-=lengths[i];}
- return {x:83,y:247};
+ return {x:61,y:242};
 }
 class Story{
  constructor(emit=()=>{}){this.emit=emit;this.time=0;this.roomStart=null;this.view='phone';this.chat='mom';this.messages=[];this.messageIndex=0;this.nextMessage=1;this.ready=false;this.notificationAt=null;this.teacherRead=false;this.pressureAt=null;this.pressureLevel=0;this.resolved=false;this.distress=false;this.escaped=false;this.rhythmTime=0;this.strikes=0;this.score=0;this.notes=[];this.lastBeat=-1;this.nextThought=0;this.thoughtIndex=0;this.collapseAt=null;this.done=false;this.danceProgress=0;this.danceHits=0;this.combo=0;this.escapeAvailable=false;this.transitionAt=null;this.escapeLine=-1;this.wakeReplySent=false;}
