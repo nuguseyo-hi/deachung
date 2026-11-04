@@ -3,6 +3,8 @@
 'use strict';
 const MOM=['우리 딸~ 오늘도 화이팅!','잘할 수 있지?','오늘도 연습 열심히 해~ 엄마가 열심히 서포트할게!'];
 const TEACHER=['예리야. 연습 잘하고 있지?','항상 보고 있으니까 농땡이 피울 생각 말고 연습해.'];
+const TEACHER_EXTRA=['뭐해?','연습안해?','혹시 그만둘 생각이니? 그럼 말해.','내가 지금 나 잘되자고 이러는 줄 알아?','빨리 연습해.','그러니까 네가 만년 꼴찌인거야.','그런 정신머리로 어떻게 예고 가려고?','너만 힘든 줄 알아?','그런 식으로 할거면 그냥 관둬라. 나도 너같은 애 가르치기 힘들어.'];
+TEACHER.push(...TEACHER_EXTRA);
 const FINAL=['선생님께 다 들었어.','예리야, 많이 힘들어? 그렇다고 해서 연습을 안하면 어떻게 하니?','지금 너를 위해 엄마가 얼마나 투자했는데, 어떻게 네가 엄마한테 이러니?','실망했다. 이런 식으로 할거면 하지 마. 너보다 힘든 애가 얼마나 많은데. 고작 이거 하나 못해?'];
 const THOUGHTS=['하기 싫다.','그만하고 싶다.','지겨워.','만약에 내가 지금 기절하면 더이상 안 쳐도 되지 않을까?','언제까지 이렇게 살아야하지?','그만, 그만해.','아, 하지만 다들 이만큼 하는데.','엄마가 날 위해 이만큼 투자해줬는데, 난 왜 이 모양이지?','더이상 못견디겠어.','죽을 것 같아.','차라리 교통사고가 나서 병원에 한 달 정도 입원하면 쉴 수 있을텐데.'];
 // 120 BPM: denser beats, then syncopation and short eighth-note bursts.
@@ -41,10 +43,10 @@ function dancePosition(progress){
  return {x:83,y:247};
 }
 class Story{
- constructor(emit=()=>{}){this.emit=emit;this.time=0;this.roomStart=null;this.view='phone';this.chat='mom';this.messages=[];this.messageIndex=0;this.nextMessage=1;this.ready=false;this.notificationAt=null;this.teacherRead=false;this.pressureAt=null;this.pressureLevel=0;this.resolved=false;this.distress=false;this.escaped=false;this.rhythmTime=0;this.strikes=0;this.score=0;this.notes=[];this.lastBeat=-1;this.nextThought=0;this.thoughtIndex=0;this.collapseAt=null;this.done=false;this.danceProgress=0;this.danceHits=0;this.combo=0;this.escapeAvailable=false;this.transitionAt=null;this.escapeLine=-1;}
+ constructor(emit=()=>{}){this.emit=emit;this.time=0;this.roomStart=null;this.view='phone';this.chat='mom';this.messages=[];this.messageIndex=0;this.nextMessage=1;this.ready=false;this.notificationAt=null;this.teacherRead=false;this.pressureAt=null;this.pressureLevel=0;this.resolved=false;this.distress=false;this.escaped=false;this.rhythmTime=0;this.strikes=0;this.score=0;this.notes=[];this.lastBeat=-1;this.nextThought=0;this.thoughtIndex=0;this.collapseAt=null;this.done=false;this.danceProgress=0;this.danceHits=0;this.combo=0;this.escapeAvailable=false;this.transitionAt=null;this.escapeLine=-1;this.wakeReplySent=false;}
  event(type,data){this.emit({type,...data});}
  advance(dt){if(this.done)return;this.time+=dt;
-  if(this.nextMessage!==null&&this.time>=this.nextMessage){const list=this.chat==='mom'?MOM:this.chat==='teacher'?TEACHER:FINAL;if(this.messageIndex<list.length){const text=list[this.messageIndex++];this.messages.push(text);this.event('message',{text});this.nextMessage=this.time+(this.chat==='final'?3.2:2.2);}else{this.nextMessage=null;this.ready=true;this.event('chatReady');if(this.chat==='final'){this.collapseAt=this.time+3;this.event('collapse');}}}
+  if(this.nextMessage!==null&&this.time>=this.nextMessage){const list=['mom','wake'].includes(this.chat)?MOM:this.chat==='teacher'?TEACHER:FINAL;if(this.messageIndex<list.length){const text=list[this.messageIndex++];this.messages.push(text);this.event('message',{text});this.nextMessage=this.time+(this.chat==='final'?3.2:2.2);}else{this.nextMessage=null;this.ready=true;this.event('chatReady');if(this.chat==='final'){this.collapseAt=this.time+3;this.event('collapse');}}}
   if(this.roomStart!==null&&!this.resolved&&this.chat!=='final'){
    if(this.notificationAt===null&&this.time-this.roomStart>=30){this.notificationAt=this.time;this.event('notification');if(this.view==='piano')this.sit();}
    if(this.notificationAt!==null&&!this.teacherRead&&this.pressureAt===null&&this.time-this.notificationAt>=30){this.pressureAt=this.time;this.event('knock',{text:'연습 안하고 뭐해!!!!'});}
@@ -53,14 +55,12 @@ class Story{
   if(this.view==='piano'&&this.distress&&this.time>=this.nextThought){this.event('thought',{text:THOUGHTS[this.thoughtIndex++%THOUGHTS.length]});this.nextThought=this.time+2.6;}
   if(this.view==='rhythm')this.advanceRhythm(dt);
   if(this.view==='returning'&&this.time-this.transitionAt>=3){this.view='room';this.danceProgress=0;this.event('returned');this.event('room');}
-  if(this.view==='escaping'){
-   const elapsed=this.time-this.transitionAt;
-   if(elapsed>=2){const line=Math.min(3,Math.floor((elapsed-2)/2.8));if(line!==this.escapeLine){this.escapeLine=line;this.event('escapeLine',{text:ESCAPE_LINES[line]});}}
-   if(elapsed>=14){this.view='ending';this.done=true;this.event('ending');}
-  }
+  if(this.view==='escaping'&&this.time-this.transitionAt>=2){this.view='waking';this.transitionAt=this.time;this.event('wake');}
+  if(this.view==='waking'&&this.time-this.transitionAt>=3){this.view='wakePhone';this.openChat('wake');}
+  if(this.view==='danceEnding'&&this.time-this.transitionAt>=1.2){this.view='ending';this.done=true;this.event('ending');}
   if(this.collapseAt!==null&&this.time>=this.collapseAt){this.done=true;this.view='over';this.event('gameover');}
  }
- openChat(kind){this.view='phone';this.chat=kind;this.messageIndex=0;this.messages=[];this.ready=false;this.nextMessage=this.time+.7;this.event('chat',{kind});}
+ openChat(kind){this.view=kind==='wake'?'wakePhone':'phone';this.chat=kind;this.messageIndex=0;this.messages=[];this.ready=false;this.nextMessage=this.time+.7;this.event('chat',{kind});}
  answer(silent=false){if(this.chat!=='mom'||!this.ready||this.roomStart!==null)return false;if(!silent)this.event('reply',{text:'응. 열심히 할게.'});this.roomStart=this.time;this.view='room';this.event('room');return true;}
  openPhone(){if(!['room','piano','phone'].includes(this.view)||this.done||this.collapseAt!==null)return;if(this.notificationAt!==null&&!this.teacherRead&&this.chat!=='final'){this.teacherRead=true;this.openChat('teacher');}else{this.view='phone';this.event('chat',{kind:this.chat,history:true});}}
  closePhone(){if(this.view!=='phone'||this.chat==='final'||this.roomStart===null)return;this.view='room';this.event('room');}
@@ -70,6 +70,8 @@ class Story{
  cancelDance(){if(this.view!=='player')return;this.view='room';this.event('room');}
  startRhythm(){if(!['player','room'].includes(this.view)||!this.escaped||this.done)return false;this.resolved=true;this.nextMessage=null;this.view='rhythm';this.rhythmTime=0;this.strikes=0;this.score=0;this.danceProgress=0;this.danceHits=0;this.combo=0;this.escapeAvailable=false;this.notes=rhythmChart();this.lastBeat=-1;this.event('rhythm');return true;}
  chooseEscape(open){if(this.view!=='escapeChoice'||!this.escapeAvailable)return false;this.escapeAvailable=false;this.transitionAt=this.time;this.nextMessage=null;this.view=open?'escaping':'returning';this.event(open?'escapeOpen':'returnPiano');return true;}
+ chooseDanceEnding(){if(this.view!=='wakePhone'||!this.ready||this.done)return false;this.event('reply',{text:'아니, 오늘은 밖으로 나가서 춤출거야.'});this.view='danceEnding';this.transitionAt=this.time;this.nextMessage=null;this.event('danceDecision');return true;}
+ answerAfterDream(){if(this.view!=='wakePhone'||!this.ready||this.wakeReplySent)return false;this.wakeReplySent=true;this.event('reply',{text:'응. 열심히 할게.'});return true;}
  retryDance(){if(this.view!=='danceRetry')return;this.view='player';this.event('dancePrompt');}
 
  advanceRhythm(dt){this.rhythmTime+=dt;const beat=Math.floor(this.rhythmTime/.5);if(beat!==this.lastBeat){this.lastBeat=beat;this.event('beat',{beat});}
@@ -77,5 +79,5 @@ class Story{
  if(this.rhythmTime>=60){this.rhythmTime=60;this.notes=[];this.escapeAvailable=this.danceProgress>=1;this.view=this.escapeAvailable?'escapeChoice':'danceRetry';this.event(this.escapeAvailable?'escapeChoice':'danceRetry');}}
  hit(){if(this.view!=='rhythm'||this.done)return;const n=this.notes.filter(n=>n.state==='new'&&Math.abs(n.at-this.rhythmTime)<=RHYTHM.hitWindow).sort((a,b)=>Math.abs(a.at-this.rhythmTime)-Math.abs(b.at-this.rhythmTime))[0];if(!n){this.event('judge',{text:'·',kind:'miss'});return;}n.state='hit';if(n.red){this.combo=0;this.strikes++;this.event('strike',{strikes:this.strikes});if(this.strikes>=5){this.view='collapse';this.collapseAt=this.time+3;this.event('collapse');}}else{this.danceHits++;this.combo++;this.danceProgress=Math.min(1,this.danceHits/RHYTHM.requiredHits);this.event('danceStep',{progress:this.danceProgress,combo:this.combo});this.score+=Math.abs(n.at-this.rhythmTime)<=RHYTHM.perfectWindow?1000:600;this.event('judge',{text:'♪',kind:'good'});}}
 }
-const api={RoomMovement,ROOM_OBJECTS,DANCE_PATH,dancePosition,ESCAPE_LINES,Story,MOM,TEACHER,FINAL,THOUGHTS,RHYTHM,rhythmChart};if(typeof module!=='undefined')module.exports=api;else root.PracticeStory=api;
+const api={RoomMovement,ROOM_OBJECTS,DANCE_PATH,dancePosition,ESCAPE_LINES,TEACHER_EXTRA,Story,MOM,TEACHER,FINAL,THOUGHTS,RHYTHM,rhythmChart};if(typeof module!=='undefined')module.exports=api;else root.PracticeStory=api;
 })(globalThis);
